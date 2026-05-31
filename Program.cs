@@ -11,6 +11,9 @@ builder.Services.AddRazorPages();
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<MyIdentityDBContext>(o => o.UseSqlServer(conn));
 
+builder.Services.AddAuthentication().AddBearerToken(IdentityConstants.BearerScheme);
+builder.Services.AddAuthorizationBuilder();
+
 builder.Services
     .AddIdentity<MyUser, MyRol>(
         options =>
@@ -31,9 +34,15 @@ builder.Services
         }
     )
     .AddDefaultTokenProviders()
-    .AddEntityFrameworkStores<MyIdentityDBContext>();
+    .AddEntityFrameworkStores<MyIdentityDBContext>()
+    .AddApiEndpoints();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+app.MapIdentityApi<MyUser>();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -41,6 +50,11 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+}
+else
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
